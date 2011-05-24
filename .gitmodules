@@ -1,0 +1,3 @@
+[submodule "core/phpobjectproxy"]
+	path = core/phpobjectproxy
+	url = https://sarnowski@github.com/sarnowski/phpobjectproxy.git
