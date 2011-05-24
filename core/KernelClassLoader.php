@@ -1,13 +1,11 @@
 <?php
 
-require_once('ClassLoader.php');
-
 /**
  *
  *
  * @author Tobias Sarnowski
  */
-class ClassLoaderImpl implements ClassLoader {
+class KernelClassLoader {
 
     private $classPaths = array();
     private $loadedClasses = array();

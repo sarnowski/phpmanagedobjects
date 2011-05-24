@@ -1,14 +1,27 @@
 <?php
 
-require_once('phpobjectproxy/src/ObjectProxyGenerator.php');
+// debug utility
+require('debug.php');
 
-require_once('debug.php');
-require_once('Kernel.php');
-require_once('KernelProxy.php');
-require_once('KernelException.php');
-require_once('DocParser.php');
-require_once('ClassLoaderImpl.php');
+// phpobjectproxy library
+require('phpobjectproxy/src/ObjectProxyGenerator.php');
 
+// api
+require('api/DocParser.php');
+require('api/Kernel.php');
+require('api/KernelCallChain.php');
+require('api/KernelException.php');
+
+// spi
+require('spi/KernelExtension.php');
+require('spi/ClassAnalyzerExtension.php');
+require('spi/ClassCallExtension.php');
+require('spi/ClassConstructionExtension.php');
+
+// implementation
+require('KernelCallChainImpl.php');
+require('KernelClassLoader.php');
+require('KernelProxy.php');
 
 /**
  *
@@ -23,7 +36,7 @@ class KernelImpl implements Kernel {
 
     private $classes = array();
 
-    private $instances = array();
+    private $proxies = array();
 
     private $extensions = array();
 
@@ -31,7 +44,7 @@ class KernelImpl implements Kernel {
 
     public function __construct() {
         self::$SINGLETON = $this;
-        $this->classLoader = new ClassLoaderImpl();
+        $this->classLoader = new KernelClassLoader();
     }
 
     public function getClassLoader() {
@@ -59,15 +72,17 @@ class KernelImpl implements Kernel {
             if ($class->isAbstract()) continue;
             if ($class->isInterface()) continue;
 
-            $proxy = new KernelProxy($this);
-            $instance = ObjectProxyGenerator::generateObject($className, $proxy);
+            $proxy = new KernelProxy($this, $class);
             $proxies[] = $proxy;
 
-            $this->registerName($className, $instance);
+            $instance = ObjectProxyGenerator::generateObject($className, $proxy);
+            $this->proxies[$className] = $instance;
+
+            $this->registerName($className, $className);
         }
 
         foreach ($proxies as $proxy) {
-            $proxy->onLoad($class);
+            $proxy->onLoad();
         }
     }
 
@@ -114,11 +129,11 @@ class KernelImpl implements Kernel {
         }
 
         $className = $this->names[$name][0];
-        if (!isset($this->instances[$className])) {
-
-            $this->instances[$className] = $instance;
+        if (!isset($this->proxies[$className])) {
+            throw new KernelException("Implementation $className not found.");
         }
-        return $this->instances[$className];
+
+        return $this->proxies[$className];
     }
 
     public static function getSingleton() {

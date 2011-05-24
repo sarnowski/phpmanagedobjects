@@ -17,12 +17,12 @@ class KernelProxy implements ObjectProxy {
      */
     private $class;
 
-    function __construct(KernelImpl $kernel) {
+    function __construct(KernelImpl $kernel, ReflectionClass $class) {
         $this->kernel = $kernel;
+        $this->class = $class;
     }
 
-    function onLoad($class) {
-        $this->class = $class;
+    function onLoad() {
         foreach ($this->kernel->getExtensions() as $extension) {
             if ($extension instanceof ClassAnalyzerExtension) {
                 $extension->analyzeClass($class);
