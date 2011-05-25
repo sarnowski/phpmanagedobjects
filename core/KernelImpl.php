@@ -120,8 +120,12 @@ class KernelImpl implements Kernel {
         return $this->classes[$className];
     }
 
+    function hasInstances($name) {
+        return isset($this->names[$name]);
+    }
+
     function getInstance($name) {
-        if (!isset($this->names[$name])) {
+        if (!$this->hasInstances($name)) {
             throw new KernelException("No class for $name registered.");
         }
         if (count($this->names[$name]) != 1) {
@@ -137,7 +141,7 @@ class KernelImpl implements Kernel {
     }
 
     function getInstances($name) {
-        if (!isset($this->names[$name])) {
+        if (!$this->hasInstances($name)) {
             return array();
         }
 

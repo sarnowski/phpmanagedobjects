@@ -13,6 +13,11 @@ class DependentObject {
      */
     var $bestObject;
 
+    /**
+     * @inject optional
+     */
+    var $test;
+
 
     /**
      * @return string

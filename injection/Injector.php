@@ -72,15 +72,26 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
             $inject = DocParser::parseAnnotation($property->getDocComment(), 'inject');
             if ($inject !== null) {
                 $listInjection = false;
+                $optional = false;
+
                 $name = $property->getName();
                 if (!empty($inject)) {
                     $inject = explode(' ', $inject);
+                    if ($inject[0] == 'optional') {
+                        $optional = true;
+                        array_shift($inject);
+                    }
                     if ($inject[0] == 'array') {
                         $listInjection = true;
                         array_shift($inject);
                     }
                     if (count($inject) > 0) {
                         $name = $inject[0];
+                    }
+                }
+                if ($optional) {
+                    if (!$this->kernel->hasInstances($name)) {
+                        continue;
                     }
                 }
                 if ($listInjection) {
