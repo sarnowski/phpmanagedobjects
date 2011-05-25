@@ -71,11 +71,23 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
         foreach ($class->getProperties() as $property) {
             $inject = DocParser::parseAnnotation($property->getDocComment(), 'inject');
             if ($inject !== null) {
+                $listInjection = false;
                 $name = $property->getName();
                 if (!empty($inject)) {
-                    $name = $inject;
+                    $inject = explode(' ', $inject);
+                    if ($inject[0] == 'array') {
+                        $listInjection = true;
+                        array_shift($inject);
+                    }
+                    if (count($inject) > 0) {
+                        $name = $inject[0];
+                    }
                 }
-                $dependency = $this->kernel->getInstance($name);
+                if ($listInjection) {
+                    $dependency = $this->kernel->getInstances($name);
+                } else {
+                    $dependency = $this->kernel->getInstance($name);
+                }
                 $property->setValue($instance, $dependency);
             }
         }
@@ -84,6 +96,4 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
     function __toString() {
         return 'Injector{}';
     }
-
-
 }

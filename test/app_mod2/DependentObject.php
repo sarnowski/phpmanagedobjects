@@ -11,19 +11,18 @@ class DependentObject {
      * @inject
      * @var SimpleInterface
      */
-    var $simpleObject;
+    var $bestObject;
 
 
     /**
      * @return string
      */
     public function getName() {
-        return "DependentObject{".$this->simpleObject."}";
+        return "DependentObject{".$this->bestObject."}";
     }
 
     function __toString() {
         return "{DependentObject}";
     }
-
 
 }
