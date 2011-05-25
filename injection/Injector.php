@@ -8,7 +8,7 @@
 class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
 
     /**
-     * @var Kernel
+     * @var KernelImpl
      */
     private $kernel;
 
@@ -16,10 +16,48 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
         $this->kernel = $kernel;
     }
 
+    /**
+     * @param ReflectionClass $class
+     * @return void
+     */
     function analyzeClass($class) {
-        // register class for various names
-        // TODO implement
-        debug("registering names");
+        // register all interface names
+        foreach ($class->getInterfaceNames() as $interfaceName) {
+            debug("registering $interfaceName");
+            $this->kernel->registerName($interfaceName, $class->getName());
+        }
+
+        // register all parent names
+        foreach ($this->getParentNames($class) as $parentName) {
+            debug("registering $parentName");
+            $this->kernel->registerName($parentName, $class->getName());
+        }
+
+        // use @name annotation for registering
+        $name = DocParser::parseAnnotation($class->getDocComment(), 'name');
+        if ($name) {
+            debug("registering $name");
+            $this->kernel->registerName($name, $class->getName());
+        }
+    }
+
+    /**
+     * Creates a flat list of all names of the parents.
+     *
+     * @param ReflectionClass $class
+     * @param array $parents
+     * @return array
+     */
+    function getParentNames(ReflectionClass $class, $parents = array()) {
+        $parent = $class->getParentClass();
+        if (!$parent) return $parents;
+
+        if ($parent->getParentClass()) {
+            $parents = $this->getParentNames($parent, $parents);
+        }
+
+        $parents[] = $parent;
+        return $parents;
     }
 
     function constructClass($instance, $class) {

@@ -136,10 +136,32 @@ class KernelImpl implements Kernel {
         return $this->proxies[$className];
     }
 
+    function getInstances($name) {
+        if (!isset($this->names[$name])) {
+            return array();
+        }
+
+        $proxies = array();
+        foreach ($this->names[$name] as $className) {
+            if (!isset($this->proxies[$className])) {
+                throw new KernelException("Implementation $className not found.");
+            }
+            $proxies[] = $this->proxies[$className];
+        }
+        return $proxies;
+    }
+
     public static function getSingleton() {
         return self::$SINGLETON;
     }
 
+    /**
+     * Boots the kernel and initializes the system.
+     *
+     * @static
+     * @param array|string $dirs
+     * @return Kernel
+     */
     public static function boot($dirs) {
         $kernel = new KernelImpl();
         if (is_array($dirs)) {

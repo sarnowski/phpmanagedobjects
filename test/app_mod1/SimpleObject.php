@@ -4,6 +4,7 @@
  *
  *
  * @author Tobias Sarnowski
+ * @name bestObject
  */
 class SimpleObject implements SimpleInterface {
 
