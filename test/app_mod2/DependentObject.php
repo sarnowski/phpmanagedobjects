@@ -14,6 +14,9 @@ class DependentObject {
     var $simpleObject;
 
 
+    /**
+     * @return string
+     */
     public function getName() {
         return "DependentObject{".$this->simpleObject."}";
     }

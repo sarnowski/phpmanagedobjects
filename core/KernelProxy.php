@@ -25,7 +25,7 @@ class KernelProxy implements ObjectProxy {
     function onLoad() {
         foreach ($this->kernel->getExtensions() as $extension) {
             if ($extension instanceof ClassAnalyzerExtension) {
-                $extension->analyzeClass($class);
+                $extension->analyzeClass($this->class);
             }
         }
     }
@@ -51,11 +51,17 @@ class KernelProxy implements ObjectProxy {
      * @return mixed
      */
     function onCall(ObjectProxyCall $call) {
+        $extensions = array();
         foreach ($this->kernel->getExtensions() as $extension) {
             if ($extension instanceof ClassCallExtension) {
-                $extension->processCall($call);
+                $extensions[] = $extension;
             }
         }
-        return $call->call();
+        $chain = new KernelCallChainImpl($call, $extensions);
+        return $chain->proceed();
+    }
+
+    function __toString() {
+        return 'KernelProxy{}';
     }
 }

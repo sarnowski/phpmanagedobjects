@@ -7,6 +7,6 @@
  */
 interface ClassCallExtension extends KernelExtension {
 
-    function processCall($call);
+    function processCall(KernelCallChain $chain);
 
 }

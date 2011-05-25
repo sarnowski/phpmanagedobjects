@@ -86,7 +86,7 @@ class KernelImpl implements Kernel {
         }
     }
 
-    function getParents($class, $list = array()) {
+    function getParents(ReflectionClass $class, $list = array()) {
         if ($class->getParentClass() == null) {
             return $list;
         }
@@ -153,4 +153,9 @@ class KernelImpl implements Kernel {
         $kernel->initialize();
         return $kernel;
     }
+
+    function __toString() {
+        return 'KernelImpl{}';
+    }
+
 }
