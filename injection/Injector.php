@@ -71,7 +71,9 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
         foreach ($class->getProperties() as $property) {
             $inject = DocParser::parseAnnotation($property->getDocComment(), 'inject');
             if ($inject !== null) {
+
                 $listInjection = false;
+                $extension = false;
                 $optional = false;
 
                 $name = $property->getName();
@@ -81,7 +83,14 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
                         $optional = true;
                         array_shift($inject);
                     }
+                    if ($inject[0] == 'extension') {
+                        $extension = true;
+                        array_shift($inject);
+                    }
                     if ($inject[0] == 'array') {
+                        if ($extension) {
+                            throw new KernelException("Cannot inject array of extensions.");
+                        }
                         $listInjection = true;
                         array_shift($inject);
                     }
@@ -94,7 +103,9 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
                         continue;
                     }
                 }
-                if ($listInjection) {
+                if ($extension) {
+                    $dependency = $this->kernel->getExtension($name);
+                } elseif ($listInjection) {
                     $dependency = $this->kernel->getInstances($name);
                 } else {
                     $dependency = $this->kernel->getInstance($name);

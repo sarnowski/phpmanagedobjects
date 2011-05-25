@@ -36,7 +36,7 @@ class KernelImpl implements Kernel {
 
     private $classes = array();
 
-    private $proxies = array();
+    private $instances = array();
 
     private $extensions = array();
 
@@ -52,6 +52,11 @@ class KernelImpl implements Kernel {
     }
 
     function initialize() {
+        // register myself
+        $this->registerInstance('Kernel', $this);
+        $this->registerName('Kernel', 'Kernel');
+        $this->registerName('kernel', 'Kernel');
+
         // look for extension classes
         foreach ($this->classLoader->getLoadedClasses() as $className) {
             $class = $this->getClass($className);
@@ -60,7 +65,7 @@ class KernelImpl implements Kernel {
             if ($class->isInterface()) continue;
             $extension = new $className();
             $extension->setKernel($this);
-            $this->extensions[] = $extension;
+            $this->extensions[$className] = $extension;
         }
 
         // load all proxies
@@ -76,13 +81,18 @@ class KernelImpl implements Kernel {
             $proxies[] = $proxy;
 
             $instance = ObjectProxyGenerator::generateObject($className, $proxy);
-            $this->proxies[$className] = $instance;
+            $this->registerInstance($className, $instance);
 
             $this->registerName($className, $className);
         }
 
         foreach ($proxies as $proxy) {
             $proxy->onLoad();
+        }
+
+        if ($this->hasInstances('EventHandler')) {
+            $eventHandler = $this->getInstance('EventHandler');
+            $eventHandler->fire('kernel.booted');
         }
     }
 
@@ -92,6 +102,13 @@ class KernelImpl implements Kernel {
         }
         $list[] = $class->getParentClass();
         return $this->getParents($class, $list);
+    }
+
+    function registerInstance($name, $instance) {
+        if (isset($this->instances[$name])) {
+            throw new KernelException("Instance for $name already set.");
+        }
+        $this->instances[$name] = $instance;
     }
 
     function registerName($name, $className) {
@@ -107,6 +124,13 @@ class KernelImpl implements Kernel {
 
     function getExtensions() {
         return $this->extensions;
+    }
+
+    function getExtension($name) {
+        if (!isset($this->extensions[$name])) {
+            throw new KernelException("Extension $name not loaded.");
+        }
+        return $this->extensions[$name];
     }
 
     /**
@@ -133,11 +157,11 @@ class KernelImpl implements Kernel {
         }
 
         $className = $this->names[$name][0];
-        if (!isset($this->proxies[$className])) {
+        if (!isset($this->instances[$className])) {
             throw new KernelException("Implementation $className not found.");
         }
 
-        return $this->proxies[$className];
+        return $this->instances[$className];
     }
 
     function getInstances($name) {
@@ -147,10 +171,10 @@ class KernelImpl implements Kernel {
 
         $proxies = array();
         foreach ($this->names[$name] as $className) {
-            if (!isset($this->proxies[$className])) {
+            if (!isset($this->instances[$className])) {
                 throw new KernelException("Implementation $className not found.");
             }
-            $proxies[] = $this->proxies[$className];
+            $proxies[] = $this->instances[$className];
         }
         return $proxies;
     }

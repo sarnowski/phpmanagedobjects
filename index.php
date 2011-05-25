@@ -10,5 +10,4 @@ require('core/KernelImpl.php');
 $kernel = KernelImpl::boot(dirname(__FILE__));
 
 $obj = $kernel->getInstance('DependentObject');
-echo "object name: ";
-echo $obj->getName();
+echo "object name: ".$obj->getName()."<br/>";
