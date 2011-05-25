@@ -23,22 +23,23 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
     function analyzeClass($class) {
         // register all interface names
         foreach ($class->getInterfaceNames() as $interfaceName) {
-            debug("registering $interfaceName");
             $this->kernel->registerName($interfaceName, $class->getName());
         }
 
         // register all parent names
         foreach ($this->getParentNames($class) as $parentName) {
-            debug("registering $parentName");
             $this->kernel->registerName($parentName, $class->getName());
         }
 
         // use @name annotation for registering
         $name = DocParser::parseAnnotation($class->getDocComment(), 'name');
         if ($name) {
-            debug("registering $name");
             $this->kernel->registerName($name, $class->getName());
         }
+
+        // register the name itself without capitalization
+        $name = strtolower(substr($class->getName(), 0, 1)).substr($class->getName(), 1);
+        $this->kernel->registerName($name, $class->getName());
     }
 
     /**
@@ -60,10 +61,29 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
         return $parents;
     }
 
+    /**
+     * @param mixed $instance
+     * @param ReflectionClass $class
+     * @return void
+     */
     function constructClass($instance, $class) {
         // inject all dependencies
-        // TODO implement
-        debug("injecting dependencies");
+        foreach ($class->getProperties() as $property) {
+            $inject = DocParser::parseAnnotation($property->getDocComment(), 'inject');
+            if ($inject !== null) {
+                $name = $property->getName();
+                if (!empty($inject)) {
+                    $name = $inject;
+                }
+                $dependency = $this->kernel->getInstance($name);
+                $property->setValue($instance, $dependency);
+            }
+        }
     }
+
+    function __toString() {
+        return 'Injector{}';
+    }
+
 
 }
