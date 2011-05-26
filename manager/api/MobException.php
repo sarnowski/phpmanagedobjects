@@ -1,11 +1,11 @@
 <?php
 
 /**
- *
+ * Indicates an error within the MobManager.
  *
  * @author Tobias Sarnowski
  */
-class KernelException extends Exception {
+class MobException extends Exception {
 
     public function __construct($message) {
         parent::__construct($message);

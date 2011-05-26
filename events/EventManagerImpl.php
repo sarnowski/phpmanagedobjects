@@ -1,11 +1,12 @@
 <?php
 
 /**
+ * Implements the EventManager interface.
  *
- *
+ * @name eventManager
  * @author Tobias Sarnowski
  */
-class EventHandlerImpl implements EventHandler {
+class EventManagerImpl implements EventManager {
 
     /**
      * @inject extension EventExtension
@@ -15,9 +16,9 @@ class EventHandlerImpl implements EventHandler {
 
     /**
      * @inject
-     * @var Kernel
+     * @var MobManager
      */
-    var $kernel;
+    var $mobManager;
 
     /**
      * @param string $event
@@ -28,12 +29,15 @@ class EventHandlerImpl implements EventHandler {
         if ($arguments == null) {
             $arguments = array();
         }
+
         $events = $this->eventExtension->getEvents();
+
         if (!isset($events[$event])) {
             return;
         }
+
         foreach ($events[$event] as $observer) {
-            $instance = $this->kernel->getInstance($observer['class']->getName());
+            $instance = $this->mobManager->getMob($observer['name']);
             $observer['method']->invokeArgs($instance, $arguments);
         }
     }

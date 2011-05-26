@@ -1,38 +1,53 @@
 <?php
 
 /**
- *
+ * Enlists every method which wants to be invoked upon an event.
  *
  * @author Tobias Sarnowski
  */
 class EventExtension implements ClassAnalyzerExtension {
 
     /**
-     * @var Kernel
+     * @var MobManager
      */
-    private $kernel;
+    private $mobManager;
 
+    /**
+     * @var array
+     */
     private $events = array();
 
-    function setKernel($kernel) {
-        $this->kernel = $kernel;
+    /**
+     * Will be invoked before any other extension method will be called.
+     *
+     * @param MobManager $mobManager
+     * @return void
+     */
+    public function setMobManager(MobManager $mobManager) {
+        $this->mobManager = $mobManager;
     }
 
     /**
+     * @param string $name
      * @param ReflectionClass $class
      * @return void
      */
-    function analyzeClass($class) {
+    function analyzeClass($name, ReflectionClass $class) {
         foreach ($class->getMethods() as $method) {
-            $observes = DocParser::parseAnnotations($method->getDocComment(), 'observes');
-            foreach ($observes as $event) {
-                if (!isset($this->events[$event])) {
-                    $this->events[$event] = array();
+            $methodAnnotations = $this->mobManager->getAnnotationParser()->getAnnotatedMethod($method);
+            foreach ($methodAnnotations->getAnnotations() as $annotation) {
+                if ($annotation->getName() == 'observes') {
+                    $event = $annotation->getPayload();
+
+                    if (!isset($this->events[$event])) {
+                        $this->events[$event] = array();
+                    }
+
+                    $this->events[$event][] = array(
+                        'name' => $name,
+                        'method' => $method
+                    );
                 }
-                $this->events[$event][] = array(
-                    'class' => $class,
-                    'method' => $method
-                );
             }
         }
     }

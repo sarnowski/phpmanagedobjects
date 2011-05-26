@@ -2,7 +2,7 @@
 
 /**
  *
- *
+ * @name
  * @author Tobias Sarnowski
  */
 class DependentObject {
@@ -27,11 +27,11 @@ class DependentObject {
     }
 
     /**
-     * @observes kernel.booted
+     * @observes manager.stopping
      * @return void
      */
     public function greet() {
-        echo "Greeting from ".$this->getName()."!<br/>";
+        echo "bye bye from ".$this->getName()."!<br/>";
     }
 
     function __toString() {

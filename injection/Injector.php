@@ -1,45 +1,45 @@
 <?php
 
 /**
- *
+ * Provides dependency injection for all managed objects.
  *
  * @author Tobias Sarnowski
  */
 class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
 
     /**
-     * @var KernelImpl
+     * @var MobManager
      */
-    private $kernel;
+    private $mobManager;
 
-    function setKernel($kernel) {
-        $this->kernel = $kernel;
+    /**
+     * Will be invoked before any other extension method will be called.
+     *
+     * @param MobManager $mobManager
+     * @return void
+     */
+    public function setMobManager(MobManager $mobManager) {
+        $this->mobManager = $mobManager;
     }
 
     /**
+     * @param string $name
      * @param ReflectionClass $class
      * @return void
      */
-    function analyzeClass($class) {
+    public function analyzeClass($name, ReflectionClass $class) {
         // register all interface names
         foreach ($class->getInterfaceNames() as $interfaceName) {
-            $this->kernel->registerName($interfaceName, $class->getName());
+            $this->mobManager->registerName($interfaceName, $name);
         }
 
         // register all parent names
         foreach ($this->getParentNames($class) as $parentName) {
-            $this->kernel->registerName($parentName, $class->getName());
+            $this->mobManager->registerName($parentName, $name);
         }
 
-        // use @name annotation for registering
-        $name = DocParser::parseAnnotation($class->getDocComment(), 'name');
-        if ($name) {
-            $this->kernel->registerName($name, $class->getName());
-        }
-
-        // register the name itself without capitalization
-        $name = strtolower(substr($class->getName(), 0, 1)).substr($class->getName(), 1);
-        $this->kernel->registerName($name, $class->getName());
+        // register the class name
+        $this->mobManager->registerName($class->getName(), $name);
     }
 
     /**
@@ -63,14 +63,16 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
 
     /**
      * @param mixed $instance
+     * @param string $name
      * @param ReflectionClass $class
      * @return void
      */
-    function constructClass($instance, $class) {
+    public function constructClass($instance, $name, ReflectionClass $class) {
         // inject all dependencies
         foreach ($class->getProperties() as $property) {
-            $inject = DocParser::parseAnnotation($property->getDocComment(), 'inject');
-            if ($inject !== null) {
+            $methodAnnotations = $this->mobManager->getAnnotationParser()->getAnnotatedProperty($property);
+            if ($methodAnnotations->hasAnnotation('inject')) {
+                $inject = $methodAnnotations->getAnnotation('inject')->getPayload();
 
                 $listInjection = false;
                 $extension = false;
@@ -89,7 +91,7 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
                     }
                     if ($inject[0] == 'array') {
                         if ($extension) {
-                            throw new KernelException("Cannot inject array of extensions.");
+                            throw new MobException("Cannot inject array of extensions.");
                         }
                         $listInjection = true;
                         array_shift($inject);
@@ -99,16 +101,16 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
                     }
                 }
                 if ($optional) {
-                    if (!$this->kernel->hasInstances($name)) {
+                    if (!$this->mobManager->hasMob($name)) {
                         continue;
                     }
                 }
                 if ($extension) {
-                    $dependency = $this->kernel->getExtension($name);
+                    $dependency = $this->mobManager->getExtension($name);
                 } elseif ($listInjection) {
-                    $dependency = $this->kernel->getInstances($name);
+                    $dependency = $this->mobManager->getMobs($name);
                 } else {
-                    $dependency = $this->kernel->getInstance($name);
+                    $dependency = $this->mobManager->getMob($name);
                 }
                 $property->setValue($instance, $dependency);
             }

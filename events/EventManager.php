@@ -1,11 +1,11 @@
 <?php
 
 /**
- *
+ * Provides the possibility to fire events.
  *
  * @author Tobias Sarnowski
  */
-interface EventHandler {
+interface EventManager {
 
     /**
      * @abstract

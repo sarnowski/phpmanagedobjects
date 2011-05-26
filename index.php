@@ -5,9 +5,12 @@
  * @author Tobias Sarnowski
  */
 
-require('core/KernelImpl.php');
+require('debug.php');
+require('manager/impl/MobManagerImpl.php');
 
-$kernel = KernelImpl::boot(dirname(__FILE__));
+$manager = MobManagerImpl::autostart(dirname(__FILE__));
 
-$obj = $kernel->getInstance('DependentObject');
+$obj = $manager->getMob('dependentObject');
 echo "object name: ".$obj->getName()."<br/>";
+
+$manager->stop();

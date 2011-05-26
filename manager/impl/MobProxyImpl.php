@@ -1,31 +1,37 @@
 <?php
 
 /**
- *
+ * MobManager proxy to provide the extension functionalities.
  *
  * @author Tobias Sarnowski
  */
-class KernelProxy implements ObjectProxy {
+class MobProxyImpl implements ObjectProxy {
 
     /**
-     * @var KernelImpl
+     * @var MobManagerImpl
      */
-    private $kernel;
+    private $mobManager;
+
+    /**
+     * @var string
+     */
+    private $name;
 
     /**
      * @var ReflectionClass
      */
     private $class;
 
-    function __construct(KernelImpl $kernel, ReflectionClass $class) {
-        $this->kernel = $kernel;
+    function __construct(MobManagerImpl $mobManager, $name, ReflectionClass $class) {
+        $this->mobManager = $mobManager;
+        $this->name = $name;
         $this->class = $class;
     }
 
     function onLoad() {
-        foreach ($this->kernel->getExtensions() as $extension) {
+        foreach ($this->mobManager->getExtensions() as $extension) {
             if ($extension instanceof ClassAnalyzerExtension) {
-                $extension->analyzeClass($this->class);
+                $extension->analyzeClass($this->name, $this->class);
             }
         }
     }
@@ -37,9 +43,9 @@ class KernelProxy implements ObjectProxy {
      * @return object
      */
     function onConstruct($instance) {
-        foreach ($this->kernel->getExtensions() as $extension) {
+        foreach ($this->mobManager->getExtensions() as $extension) {
             if ($extension instanceof ClassConstructionExtension) {
-                $extension->constructClass($instance, $this->class);
+                $extension->constructClass($instance, $this->name, $this->class);
             }
         }
     }
@@ -52,16 +58,16 @@ class KernelProxy implements ObjectProxy {
      */
     function onCall(ObjectProxyCall $call) {
         $extensions = array();
-        foreach ($this->kernel->getExtensions() as $extension) {
+        foreach ($this->mobManager->getExtensions() as $extension) {
             if ($extension instanceof ClassCallExtension) {
                 $extensions[] = $extension;
             }
         }
-        $chain = new KernelCallChainImpl($call, $extensions);
+        $chain = new MobManagerCallChainImpl($this->name, $call, $extensions);
         return $chain->proceed();
     }
 
     function __toString() {
-        return 'KernelProxy{}';
+        return 'MobProxyImpl';
     }
 }

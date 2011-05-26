@@ -13,11 +13,11 @@ class SimpleObject implements SimpleInterface {
     }
 
     /**
-     * @observes kernel.booted
+     * @observes manager.started
      * @return void
      */
     function triggeredOnBoot() {
-        echo "The kernel booted!<br/>";
+        echo "The manager started!<br/>";
     }
 
     function __toString() {
