@@ -4,18 +4,18 @@
 require('proxy/src/ObjectProxyGenerator.php');
 
 // api
-require('../api/AnnotatedDefinition.php');
-require('../api/Annotation.php');
-require('../api/AnnotationParser.php');
-require('../api/MobCallChain.php');
-require('../api/MobException.php');
-require('../api/MobManager.php');
+require(__DIR__.'/../api/AnnotatedDefinition.php');
+require(__DIR__.'/../api/Annotation.php');
+require(__DIR__.'/../api/AnnotationParser.php');
+require(__DIR__.'/../api/MobCallChain.php');
+require(__DIR__.'/../api/MobException.php');
+require(__DIR__.'/../api/MobManager.php');
 
 // spi
-require('../spi/MobManagerExtension.php');
-require('../spi/ClassAnalyzerExtension.php');
-require('../spi/ClassCallExtension.php');
-require('../spi/ClassConstructionExtension.php');
+require(__DIR__.'/../spi/MobManagerExtension.php');
+require(__DIR__.'/../spi/ClassAnalyzerExtension.php');
+require(__DIR__.'/../spi/ClassCallExtension.php');
+require(__DIR__.'/../spi/ClassConstructionExtension.php');
 
 // implementation
 require('AnnotatedDefinitionImpl.php');
