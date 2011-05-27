@@ -37,9 +37,6 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
         foreach ($this->getParentNames($class) as $parentName) {
             $this->mobManager->registerName($parentName, $name);
         }
-
-        // register the class name
-        $this->mobManager->registerName($class->getName(), $name);
     }
 
     /**
@@ -57,7 +54,7 @@ class Injector implements ClassAnalyzerExtension, ClassConstructionExtension {
             $parents = $this->getParentNames($parent, $parents);
         }
 
-        $parents[] = $parent;
+        $parents[] = $parent->getName();
         return $parents;
     }
 

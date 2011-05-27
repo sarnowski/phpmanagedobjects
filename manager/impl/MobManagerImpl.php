@@ -405,6 +405,7 @@ class MobManagerImpl implements MobManager {
             $proxies[] = $proxy;
 
             $instance = ObjectProxyGenerator::generateObject($class->getName(), $proxy);
+            $proxy->setClass(new ReflectionClass(get_class($instance)));
 
             $this->mobs[$name] = $instance;
         }

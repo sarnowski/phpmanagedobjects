@@ -22,9 +22,12 @@ class MobProxyImpl implements ObjectProxy {
      */
     private $class;
 
-    function __construct(MobManagerImpl $mobManager, $name, ReflectionClass $class) {
+    function __construct(MobManagerImpl $mobManager, $name) {
         $this->mobManager = $mobManager;
         $this->name = $name;
+    }
+
+    function setClass(ReflectionClass $class) {
         $this->class = $class;
     }
 
